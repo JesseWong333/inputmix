@@ -84,9 +84,9 @@ class Attention(nn.Module):
         return q, k, v
     
     def attend_with_summary_info(self, q, k, v, summary_k, summaried_v):  #  added by junjie
-        # 有个问题是, 这里的summary_k跟样本无关， 没有batch_size这个维度
+
         B, N_heads, T, C = q.shape
-        # summary_k = summary_k.unsqueeze(0).expand(B, -1, -1, -1)
+       
         k = torch.cat((k, summary_k), 2)
         v = torch.cat( (v, summaried_v), 2)
         attn = (q @ k.transpose(-2, -1)) * self.scale

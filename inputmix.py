@@ -15,21 +15,21 @@ class InputMix:
         self.p = p
         self.lam = lam
         
-    def __call__(self, modalities, target):
+    def __call__(self, inputs, targets):
 
-        assert len(modalities) == len(self.lam), "inputs lens does not match!"
-        batch_size = len(modalities[0])
+        assert len(inputs) == len(self.lam), "inputs lens does not match!"
+        batch_size = len(inputs[0])
         n = int(np.round(batch_size * self.p))
 
-        changed_batches = [ modality[:n, :, :, :] for modality in modalities]
-        changed_targets = [ one_hot(target[:n], self.num_classes).clone() for i in range(len(modalities))]
+        changed_batches = [ modality[:n, :, :, :] for modality in inputs]
+        changed_targets = [ one_hot(targets[:n], self.num_classes).clone() for i in range(len(inputs))]
        
-        unchanged_batches = [ modality[n:, :, :, :] for modality in modalities]
-        unchanged_target = one_hot(target[n:], self.num_classes)
+        unchanged_batches = [ modality[n:, :, :, :] for modality in inputs]
+        unchanged_target = one_hot(targets[n:], self.num_classes)
         # generate randperm
         while True:
             rand_indx_l = []
-            for i in range(len(modalities)):
+            for i in range(len(inputs)):
                 # randomperm
                 rand_indx_l.append(torch.randperm(n))
             

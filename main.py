@@ -253,7 +253,6 @@ if __name__ == '__main__':
     parser.add_argument('--evaluate', default=False, help='evaluate model on validation set')
     parser.add_argument('--fusion_layer', default=10, type=int, help='where start to fuse')
     parser.add_argument('--fusionmix', default=0.2, type=float, help='where start to fuse')
-    # parser.add_argument('--fusion_mix_lam', default=[0.5, 0.5], type=list, help='where start to fuse')
     parser.add_argument('--fusion_mix_lam', nargs='+', default=[0.5, 0.5], type=float, help='List of lam')
     parser.add_argument('--weight_loss', default=0.5, type=float, help='where start to fuse')
     parser.add_argument('--num_views', default=2, type=int, help='how many views to use')

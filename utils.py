@@ -78,7 +78,7 @@ def load_pretrained_weights(model, pretrained_weights, checkpoint_key, model_nam
         state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
         # remove `backbone.` prefix induced by multicrop wrapper
         state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-        msg = model.load_state_dict(state_dict, strict=False) # 注意这里的strict 为 True还是 False
+        msg = model.load_state_dict(state_dict, strict=False)
         print('Pretrained weights found at {} and loaded with msg: {}'.format(pretrained_weights, msg))
     else:
         print("Please use the `--pretrained_weights` argument to indicate the path of the checkpoint to evaluate.")
@@ -110,7 +110,6 @@ def load_pretrained_weights(model, pretrained_weights, checkpoint_key, model_nam
 
 
 def load_pretrained_linear_weights(linear_classifier, pretrained_weights, checkpoint_key, model_name, patch_size):
-    # 这段装载代码新加入
     if os.path.isfile(pretrained_weights):
         state_dict = torch.load(pretrained_weights, map_location="cpu")
         if checkpoint_key is not None and checkpoint_key in state_dict:

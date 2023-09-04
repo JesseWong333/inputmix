@@ -23,7 +23,7 @@ class FusionAttention(nn.Module):
             v_l = []
             for j in range(len(x_l)):
                 if j != i:
-                    k = qkv_l[j][1][:, :, 1:, :]  # 非自己的全部集合成一个
+                    k = qkv_l[j][1][:, :, 1:, :]
                     v = qkv_l[j][2][:, :, 1:, :]
                     k_l.append(k)
                     v_l.append(v)
@@ -98,8 +98,7 @@ class FusionTransformer(nn.Module):
         outputs = []
         for i, blk in enumerate(self.blocks):
             externel = (i >= fusion_layer)
-            # externel = False
-
+        
             x = blk(x, externel)   
           
             if len(self.blocks) - i <= n:
