@@ -69,7 +69,7 @@ class LinearClassifier(nn.Module):
 class FusionTransformer(nn.Module):
     def __init__(self, args) -> None:
         super().__init__()
-        self.n_views = args.num_views
+        self.n_views = args.num_inputs
         
         base_modes = []
         heads = []

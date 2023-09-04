@@ -8,9 +8,12 @@ from tqdm import tqdm
 
 
 class CompCarsDataset(data.Dataset):
-    def __init__(self, split_file, base_path, transform=None) -> None:
+    def __init__(self, stage, base_path, transform=None) -> None:
         super().__init__()
-        
+        if stage == "train":
+            split_file = "sampled_compcars_train.txt"
+        else:
+            split_file = "sampled_compcars_test.txt"
         self.transform = transform
 
         major_class = []

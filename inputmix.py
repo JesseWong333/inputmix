@@ -30,7 +30,6 @@ class InputMix:
         while True:
             rand_indx_l = []
             for i in range(len(inputs)):
-                # randomperm
                 rand_indx_l.append(torch.randperm(n))
             
             permutation = sum( [(rand_indx_l[i] - rand_indx_l[0]).abs() for i in range(1, len(rand_indx_l))] )

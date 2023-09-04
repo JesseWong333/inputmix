@@ -1,4 +1,3 @@
-# 
 
 import os
 import argparse
@@ -20,7 +19,7 @@ import utils
 from models.fusion_vis import FusionTransformer
 from inputmix import InputMix
 
-def eval_linear(args):
+def train_model(args):
     utils.init_distributed_mode(args)
     print("git:\n  {}\n".format(utils.get_sha()))
     print("\n".join("%s: %s" % (k, str(v)) for k, v in sorted(dict(vars(args)).items())))
@@ -41,7 +40,7 @@ def eval_linear(args):
         pth_transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
 
-    dataset_val = CompCarsDataset("./sampled_compcars_test.txt", args.data_path, transform=val_transform)
+    dataset_val = CompCarsDataset("test", args.data_path, transform=val_transform)
 
     val_loader = torch.utils.data.DataLoader(
         dataset_val,
@@ -58,9 +57,9 @@ def eval_linear(args):
         pth_transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
 
-    dataset_train = CompCarsDataset("./sampled_compcars_train.txt", args.data_path, transform=train_transform)
+    dataset_train = CompCarsDataset("train", args.data_path, transform=train_transform)
 
-    sampler = torch.utils.data.distributed.DistributedSampler(dataset_train, shuffle=True) # shuffle默认True
+    sampler = torch.utils.data.distributed.DistributedSampler(dataset_train, shuffle=True)
     train_loader = torch.utils.data.DataLoader(
         dataset_train,
         sampler=sampler,
@@ -144,16 +143,16 @@ def train(model, optimizer, loader, epoch, n, lr_scheduler, avgpool, args):
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
 
-    if args.fusionmix > 0.:
+    if args.fusion_mix_p > 0.:
         # smoothing is handled with mixup label transform
         criterion = SoftTargetCrossEntropy()
-        mix_fn = InputMix(args.num_labels, args.fusionmix, args.fusion_mix_lam)
+        mix_fn = InputMix(args.num_labels, args.fusion_mix_p, args.fusion_mix_lam)
     else:
         criterion = torch.nn.CrossEntropyLoss()
 
     for i, (inp, target) in enumerate(metric_logger.log_every(loader, 5, header)):
-        inp = [inp[view_id] for view_id in args.view_ids ]
-        if args.fusionmix > 0.:
+        inp = [inp[view_id] for view_id in args.input_ids ]
+        if args.fusion_mix_p > 0.:
             inp, target = mix_fn(inp, target)
         inp = [i.cuda(non_blocking=True) for i in inp]
         target = target.cuda(non_blocking=True)
@@ -183,7 +182,7 @@ def validate_network(val_loader, model, n, avgpool, args):
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Test:'
     for inp, target in metric_logger.log_every(val_loader, 20, header):
-        inp = [inp[view_id] for view_id in args.view_ids ]
+        inp = [inp[view_id] for view_id in args.input_ids]
         inp = [i.cuda(non_blocking=True) for i in inp]
         target = target.cuda(non_blocking=True)
 
@@ -230,8 +229,8 @@ if __name__ == '__main__':
         help="""Whether ot not to concatenate the global average pooled features to the [CLS] token.
         We typically set this to False for ViT-Small and to True with ViT-Base.""")
     parser.add_argument('--arch', default='vit_small', type=str, help='Architecture')
-    parser.add_argument('--patch_size', default=16, type=int, help='Patch resolution of the model.')  # set to 8 for 
-    parser.add_argument('--pretrained_weights', default='./exp_RGBD/checkpoint_best.pth.tar', type=str, help="Path to pretrained weights to evaluate.")
+    parser.add_argument('--patch_size', default=16, type=int, help='Patch resolution of the model.')
+    parser.add_argument('--pretrained_weights', default='', type=str, help="Path to pretrained weights to evaluate.")
     parser.add_argument("--checkpoint_key", default="state_dict_model", type=str, help='Key to use in the checkpoint (example: "teacher")')
     parser.add_argument("--checkpoint_linear_key", default="state_dict", type=str, help='Key to use in the checkpoint (example: "teacher")')
     parser.add_argument('--epochs', default=100, type=int, help='Number of epochs of training.')
@@ -244,18 +243,16 @@ if __name__ == '__main__':
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
     parser.add_argument("--local_rank", default=0, type=int, help="Please ignore and do not set this argument.")
-    parser.add_argument('--data_path', default='/mimer/NOBACKUP/groups/naiss2023-22-19/data/compcars/image', type=str)
+    parser.add_argument('--data_path', default='', type=str)
     parser.add_argument('--num_workers', default=8, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument('--val_freq', default=1, type=int, help="Epoch frequency for validation.")
-    parser.add_argument('--output_dir', default="./exp_cross_attention_no_share", help='Path to save logs and checkpoints')
+    parser.add_argument('--output_dir', default="exp", help='Path to save logs and checkpoints')
     parser.add_argument('--num_labels', default=1010, type=int, help='Number of labels for linear classifier')
-    # parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
-    parser.add_argument('--evaluate', default=False, help='evaluate model on validation set')
     parser.add_argument('--fusion_layer', default=10, type=int, help='where start to fuse')
-    parser.add_argument('--fusionmix', default=0.2, type=float, help='where start to fuse')
+    parser.add_argument('--fusion_mix_p', default=0.2, type=float, help='the propotion to mix the inputs')
     parser.add_argument('--fusion_mix_lam', nargs='+', default=[0.5, 0.5], type=float, help='List of lam')
-    parser.add_argument('--weight_loss', default=0.5, type=float, help='where start to fuse')
-    parser.add_argument('--num_views', default=2, type=int, help='how many views to use')
-    parser.add_argument('--view_ids', nargs='+', default=[2, 3], type=int, help='which view to use')
+    parser.add_argument('--num_inputs', default=2, type=int, help='how many views to use')
+    parser.add_argument('--input_ids', nargs='+', default=[2, 3], type=int, help='which view to use')
+    parser.add_argument('--data_path', default='', type=str)
     args = parser.parse_args()
-    eval_linear(args)
+    train_model(args)
