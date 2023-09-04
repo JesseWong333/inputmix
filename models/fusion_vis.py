@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import vision_transformer as vits 
+import models.vision_transformer as vits 
 import utils
 
 class FusionAttention(nn.Module):

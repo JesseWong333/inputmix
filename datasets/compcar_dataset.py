@@ -11,13 +11,13 @@ class CompCarsDataset(data.Dataset):
     def __init__(self, stage, base_path, transform=None) -> None:
         super().__init__()
         if stage == "train":
-            split_file = "sampled_compcars_train.txt"
+            split_file = "datasets/compcars_train_split.txt"
         else:
-            split_file = "sampled_compcars_test.txt"
+            split_file = "datasets/compcars_test_split.txt"
         self.transform = transform
 
         major_class = []
-        with open("compcars_label_index.txt") as f:
+        with open("datasets/compcars_label_index.txt") as f:
             for line in f:
                 major_class.append(line.strip())
         self.label2index = {label:index for index, label in enumerate(major_class)}
