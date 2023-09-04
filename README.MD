@@ -18,7 +18,7 @@ python main.py --output_dir exp \
                 --fusion_mix_p 0.7 \
                 --fusion_mix_lam 0.5 0.5 \
                 --num_inputs 2 \
-                --view_ids 2 3"
+                --input_ids 2 3
 ```
 Arguments Explanation:
 - `fusion_layer`: where start to fuse, range [0, 12] for Vit-small
