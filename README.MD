@@ -22,7 +22,7 @@ python main.py --output_dir exp \
 ```
 Arguments Explanation:
 - `fusion_layer`: where start to fuse, range [0, 12] for Vit-small
-- `fusion_mix_p`: The InputMix hyper-parameter p
+- `fusion_mix_p`: The InputMix hyper-parameter p. Set fusion_mix_p=0 to train without InputMix
 - `fusion_mix_lam`: The InputMix hyper-parameter lam
 - `num_inputs`: The number of inputs of the model
 - `input_ids`: The input ids.

@@ -11,6 +11,10 @@ def one_hot(x, num_classes, on_value=1., off_value=0., device='cpu'):
 
 class InputMix:
     def __init__(self, num_classes, p, lam):
+        """
+        Args:
+        
+        """
         self.num_classes = num_classes
         self.p = p
         self.lam = lam
