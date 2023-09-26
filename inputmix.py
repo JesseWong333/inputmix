@@ -13,13 +13,24 @@ class InputMix:
     def __init__(self, num_classes, p, lam):
         """
         Args:
-        
+            num_classes (int): 
+            p (float): The propotion to mix the inputs
+            lam (list): The weighting lam assinged to each each input
         """
         self.num_classes = num_classes
         self.p = p
         self.lam = lam
         
     def __call__(self, inputs, targets):
+        """ Randomly mix the input pairs
+
+        Args:
+            inputs (list of tensors): A list of inputs, each tensor is one view/modality.
+            targets (tensor): The correspoding targets.
+
+        Returns:
+            The mixed inputs and targets.
+        """
 
         assert len(inputs) == len(self.lam), "inputs lens does not match!"
         batch_size = len(inputs[0])
@@ -56,4 +67,3 @@ class InputMix:
         out_target =  torch.cat([weighted_target, unchanged_target], dim=0)
         
         return out_modalities, out_target
-
